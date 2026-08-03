@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guardian Agents</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0f1a;
+      --card: #131c2e;
+      --border: #1e2942;
+      --fg: #e4e8f0;
+      --muted: #6b7a94;
+      --accent: #00d4aa;
+      --primary: #3b82f6;
+      --danger: #ff4757;
+      --warning: #ffa502;
+      --success: #22c55e;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon svg { width: 20px; height: 20px; fill: var(--bg); }
+    h1 { font-size: 1.25rem; font-weight: 600; }
+
+    .status {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.875rem;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .status-dot.inactive { background: var(--muted); }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 0.5rem 2rem;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      padding: 0.625rem 1.25rem;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .tab:hover { color: var(--fg); background: var(--border); }
+    .tab.active { background: var(--primary); color: white; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .panel {
+      background: var(--card);
+      padding: 1.5rem;
+      overflow-y: auto;
+      max-height: calc(100vh - 120px);
+    }
+
+    .panel-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-title { font-weight: 600; font-size: 0.9375rem; }
+
+    /* Command Input */
+    .command-input-wrapper { display: flex; gap: 0.75rem; }
+
+    .command-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.875rem 1rem;
+      color: var(--fg);
+      font-size: 0.9375rem;
+      outline: none;
+    }
+
+    .command-input:focus { border-color: var(--accent); }
+
+    .btn {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      padding: 0 1.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-outline:hover { border-color: var(--muted); background: var(--border); }
+
+    /* Activity Log */
+    .activity-log {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .log-entry {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 0.875rem;
+      border-left: 3px solid var(--border);
+      font-size: 0.8125rem;
+    }
+
+    .log-entry.file-agent { border-left-color: var(--primary); }
+    .log-entry.ops-agent { border-left-color: #8b5cf6; }
+    .log-entry.success { border-left-color: var(--success); }
+    .log-entry.error { border-left-color: var(--danger); }
+    .log-entry.warn { border-left-color: var(--warning); }
+
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.375rem;
+    }
+
+    .log-agent { font-weight: 600; font-size: 0.6875rem; text-transform: uppercase; }
+    .log-agent.file { color: var(--primary); }
+    .log-agent.ops { color: #8b5cf6; }
+    .log-time { font-size: 0.6875rem; color: var(--muted); }
+    .log-content { white-space: pre-wrap; line-height: 1.5; }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 0.875rem;
+      text-align: center;
+    }
+
+    .stat-value { font-size: 1.5rem; font-weight: 600; color: var(--accent); }
+    .stat-label { font-size: 0.6875rem; color: var(--muted); margin-top: 0.25rem; }
+
+    /* Patterns & Rules */
+    .pattern-list, .rule-list, .tool-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .pattern-item, .rule-item, .tool-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      background: var(--bg);
+      border-radius: 6px;
+      font-size: 0.8125rem;
+    }
+
+    .pattern-source { font-family: monospace; color: var(--primary); }
+    .pattern-arrow { color: var(--muted); margin: 0 0.5rem; }
+    .pattern-target { color: var(--fg); }
+    .pattern-frequency {
+      background: var(--border);
+      padding: 0.125rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.6875rem;
+      color: var(--muted);
+    }
+
+    /* Approval Queue */
+    .approval-card {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      margin-bottom: 0.75rem;
+    }
+
+    .approval-card.high-risk { border-color: var(--danger); }
+
+    .approval-risk {
+      display: inline-block;
+      font-size: 0.6875rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+
+    .approval-risk.high { background: rgba(255, 71, 87, 0.15); color: var(--danger); }
+    .approval-risk.medium { background: rgba(255, 165, 2, 0.15); color: var(--warning); }
+
+    .approval-action { font-weight: 600; margin-bottom: 0.25rem; }
+    .approval-target { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.75rem; }
+    .approval-buttons { display: flex; gap: 0.5rem; }
+
+    .approval-btn {
+      flex: 1;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.8125rem;
+    }
+
+    .approval-btn.approve { background: var(--success); color: white; }
+    .approval-btn.deny { background: var(--danger); color: white; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--card);
+      padding: 1.5rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .modal-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+
+    .form-group { margin-bottom: 1rem; }
+
+    .form-label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.375rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.625rem 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--fg);
+      font-size: 0.875rem;
+    }
+
+    .form-input:focus { outline: none; border-color: var(--accent); }
+
+    .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+      .panel { max-height: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <h1>Guardian Agents</h1>
+    </div>
+    <div class="status">
+      <div class="status-item">
+        <div class="status-dot" id="fileAgentStatus"></div>
+        <span>File Agent</span>
+      </div>
+      <div class="status-item">
+        <div class="status-dot" id="opsAgentStatus"></div>
+        <span>Ops Agent</span>
+      </div>
+      <div class="status-item">
+        <div class="status-dot" id="mcpStatus"></div>
+        <span>MCP</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="dashboard">Dashboard</button>
+    <button class="tab" data-tab="patterns">Patterns</button>
+    <button class="tab" data-tab="rules">Auto-Organize</button>
+    <button class="tab" data-tab="mcp">MCP Tools</button>
+    <button class="tab" data-tab="approvals">Approvals</button>
+  </div>
+
+  <!-- Dashboard Tab -->
+  <main id="tab-dashboard" class="tab-content active">
+    <div class="panel">
+      <div class="panel-title">Command Center</div>
+
+      <div class="command-input-wrapper">
+        <input
+          type="text"
+          class="command-input"
+          id="commandInput"
+          placeholder="Enter command (e.g., 'organize Downloads folder')..."
+        />
+        <button class="btn" id="sendBtn">Send</button>
+      </div>
+
+      <div class="panel-title" style="margin-top: 1.5rem;">Activity Log</div>
+      <div class="activity-log" id="activityLog">
+        <div class="empty-state">No activity yet. Enter a command above.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">System Status</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statPatterns">0</div>
+          <div class="stat-label">Patterns</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statSuccess">0%</div>
+          <div class="stat-label">Success Rate</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statRules">0</div>
+          <div class="stat-label">Active Rules</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statMcp">0</div>
+          <div class="stat-label">MCP Tools</div>
+        </div>
+      </div>
+
+      <div class="panel-title">Agent Status</div>
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+          <span>File Agent</span>
+          <span id="fileAgentModel" style="color: var(--muted);">llama3.2</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-top: 1px solid var(--border);">
+          <span>Ops Agent</span>
+          <span id="opsAgentModel" style="color: var(--muted);">llama3.2</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-top: 1px solid var(--border);">
+          <span>Pattern Store</span>
+          <span id="patternStoreStatus" style="color: var(--success);">Connected</span>
+        </div>
+      </div>
+
+      <div class="panel-title" style="margin-top: 1.5rem;">Pending Approvals</div>
+      <div id="approvalQueue">
+        <div class="empty-state">No pending approvals</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Patterns Tab -->
+  <div id="tab-patterns" class="tab-content" style="padding: 1.5rem;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Learned Patterns</span>
+        <button class="btn btn-sm" onclick="showAddPatternModal()">Add Pattern</button>
+      </div>
+      <p style="font-size: 0.8125rem; color: var(--muted); margin-bottom: 1rem;">
+        Patterns are learned from your file organization actions. The more you use Guardian, the smarter it gets.
+      </p>
+      <div class="pattern-list" id="patternList">
+        <div class="empty-state">Loading patterns...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules Tab -->
+  <div id="tab-rules" class="tab-content" style="padding: 1.5rem;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Auto-Organize Rules</span>
+        <button class="btn btn-sm" onclick="showAddRuleModal()">Add Rule</button>
+      </div>
+      <p style="font-size: 0.8125rem; color: var(--muted); margin-bottom: 1rem;">
+        Rules define folders to watch for automatic organization based on learned patterns.
+      </p>
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+        <button class="btn btn-sm btn-outline" id="pauseBtn" onclick="pauseOrganize()">Pause All</button>
+        <button class="btn btn-sm btn-outline" onclick="resumeOrganize()">Resume</button>
+      </div>
+      <div class="rule-list" id="ruleList">
+        <div class="empty-state">Loading rules...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MCP Tab -->
+  <div id="tab-mcp" class="tab-content" style="padding: 1.5rem;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">MCP Tools Available</span>
+      </div>
+      <p style="font-size: 0.8125rem; color: var(--muted); margin-bottom: 1rem;">
+        MCP servers provide controlled access to external resources. All calls are audited.
+      </p>
+      <div class="tool-list" id="mcpToolsList">
+        <div class="empty-state">Loading MCP tools...</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">MCP Audit Log</span>
+      </div>
+      <div class="activity-log" id="mcpAuditLog" style="max-height: 200px;">
+        <div class="empty-state">No MCP calls yet</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Approvals Tab -->
+  <div id="tab-approvals" class="tab-content" style="padding: 1.5rem;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Approval Queue</span>
+      </div>
+      <div id="approvalsFullList">
+        <div class="empty-state">No pending approvals</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Approval Statistics</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="autoApproved">0</div>
+          <div class="stat-label">Auto-Approved</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="manualApproved">0</div>
+          <div class="stat-label">Manual Approved</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="denied">0</div>
+          <div class="stat-label">Denied</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="pending">0</div>
+          <div class="stat-label">Pending</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Pattern Modal -->
+  <div class="modal-overlay" id="addPatternModal">
+    <div class="modal">
+      <div class="modal-title">Add Organization Pattern</div>
+      <div class="form-group">
+        <label class="form-label">Source Pattern (e.g., *.pdf)</label>
+        <input type="text" class="form-input" id="patternSource" placeholder="*.pdf">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Target Path (e.g., ~/Documents/PDFs)</label>
+        <input type="text" class="form-input" id="patternTarget" placeholder="~/Documents/PDFs">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal('addPatternModal')">Cancel</button>
+        <button class="btn" onclick="savePattern()">Save Pattern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Rule Modal -->
+  <div class="modal-overlay" id="addRuleModal">
+    <div class="modal">
+      <div class="modal-title">Add Auto-Organize Rule</div>
+      <div class="form-group">
+        <label class="form-label">Watch Path</label>
+        <input type="text" class="form-input" id="rulePath" placeholder="~/Downloads">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rule Type</label>
+        <select class="form-input" id="ruleType">
+          <option value="by_extension">By File Extension</option>
+          <option value="by_date">By Date</option>
+          <option value="hold">Hold Only (no auto-move)</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal('addRuleModal')">Cancel</button>
+        <button class="btn" onclick="saveRule()">Add Rule</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = '/api';
+    let ws;
+    let currentTab = 'dashboard';
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      initTabs();
+      connectWebSocket();
+      loadDashboard();
+    });
+
+    // Tab Navigation
+    function initTabs() {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          tab.classList.add('active');
+          const tabId = tab.dataset.tab;
+          document.getElementById(`tab-${tabId}`).classList.add('active');
+          loadTabContent(tabId);
+        });
+      });
+    }
+
+    function loadTabContent(tab) {
+      switch(tab) {
+        case 'patterns': loadPatterns(); break;
+        case 'rules': loadRules(); break;
+        case 'mcp': loadMCPTools(); break;
+        case 'approvals': loadAllApprovals(); break;
+      }
+    }
+
+    // WebSocket
+    function connectWebSocket() {
+      ws = new WebSocket(`ws://${location.hostname}:3456`);
+
+      ws.onopen = () => {
+        document.getElementById('fileAgentStatus').classList.remove('inactive');
+        document.getElementById('opsAgentStatus').classList.remove('inactive');
+        document.getElementById('mcpStatus').classList.remove('inactive');
+        addLog('system', 'Connected to Guardian Agents', 'success');
+      };
+
+      ws.onclose = () => {
+        document.getElementById('fileAgentStatus').classList.add('inactive');
+        document.getElementById('opsAgentStatus').classList.add('inactive');
+        document.getElementById('mcpStatus').classList.add('inactive');
+        addLog('system', 'Disconnected from Guardian Agents', 'error');
+        setTimeout(connectWebSocket, 3000);
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        handleWSMessage(data);
+      };
+    }
+
+    function handleWSMessage(data) {
+      switch(data.type) {
+        case 'init':
+          updateStats(data.stats);
+          break;
+        case 'approval_request':
+          addApprovalCard(data.request);
+          addLog('system', `Approval requested: ${data.request.action?.type}`, 'warn');
+          break;
+        case 'result':
+          const agent = data.payload?.from === 'file-agent' ? 'file' : 'ops';
+          addLog(agent, formatResult(data.payload), 'success');
+          break;
+        case 'error':
+          addLog('ops', data.message, 'error');
+          break;
+      }
+    }
+
+    // Dashboard
+    async function loadDashboard() {
+      try {
+        const [health, patterns, tools] = await Promise.all([
+          fetch(`${API}/health`).then(r => r.json()).catch(() => ({ status: 'offline' })),
+          fetch(`${API}/patterns`).then(r => r.json()).catch(() => ({})),
+          fetch(`${API}/mcp/tools`).then(r => r.json()).catch(() => [])
+        ]);
+
+        document.getElementById('statPatterns').textContent = patterns.topPatterns?.length || 0;
+        document.getElementById('statSuccess').textContent = `${patterns.successRate || 0}%`;
+        document.getElementById('statRules').textContent = patterns.activeRules || 0;
+        document.getElementById('statMcp').textContent = tools.length || 0;
+
+        if (health.status === 'healthy') {
+          document.getElementById('fileAgentModel').textContent = health.agents?.file || 'ready';
+          document.getElementById('opsAgentModel').textContent = health.agents?.ops || 'ready';
+        }
+      } catch (err) {
+        addLog('system', `Dashboard load error: ${err.message}`, 'error');
+      }
+
+      // Load pending approvals
+      const approvals = await fetch(`${API}/approvals`).then(r => r.json()).catch(() => []);
+      const queueEl = document.getElementById('approvalQueue');
+      if (approvals.length === 0) {
+        queueEl.innerHTML = '<div class="empty-state">No pending approvals</div>';
+      } else {
+        queueEl.innerHTML = approvals.map(a => renderApprovalCard(a)).join('');
+      }
+    }
+
+    // Patterns Tab
+    async function loadPatterns() {
+      try {
+        const patterns = await fetch(`${API}/patterns/top?limit=20`).then(r => r.json());
+        const list = document.getElementById('patternList');
+
+        if (!patterns.length) {
+          list.innerHTML = '<div class="empty-state">No patterns learned yet.<br>Patterns are created when you organize files.</div>';
+          return;
+        }
+
+        list.innerHTML = patterns.map(p => `
+          <div class="pattern-item">
+            <div>
+              <span class="pattern-source">${escapeHtml(p.source_pattern)}</span>
+              <span class="pattern-arrow">→</span>
+              <span class="pattern-target">${escapeHtml(p.target_pattern)}</span>
+            </div>
+            <span class="pattern-frequency">${p.frequency}x</span>
+          </div>
+        `).join('');
+      } catch (err) {
+        document.getElementById('patternList').innerHTML = `<div class="empty-state">Error loading patterns: ${err.message}</div>`;
+      }
+    }
+
+    // Rules Tab
+    async function loadRules() {
+      try {
+        const rules = await fetch(`${API}/organize/rules`).then(r => r.json());
+        const list = document.getElementById('ruleList');
+
+        if (!rules.length) {
+          list.innerHTML = '<div class="empty-state">No rules configured.<br>Add a rule to auto-organize files in a folder.</div>';
+          return;
+        }
+
+        list.innerHTML = rules.map(r => `
+          <div class="rule-item">
+            <div>
+              <strong style="color: var(--accent);">${r.ruleType}</strong>
+              <div style="font-size: 0.75rem; color: var(--muted);">${escapeHtml(r.watchPath)}</div>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="deleteRule('${escapeHtml(r.watchPath)}')">Remove</button>
+          </div>
+        `).join('');
+      } catch (err) {
+        document.getElementById('ruleList').innerHTML = `<div class="empty-state">Error loading rules: ${err.message}</div>`;
+      }
+    }
+
+    // MCP Tab
+    async function loadMCPTools() {
+      try {
+        const [tools, audit] = await Promise.all([
+          fetch(`${API}/mcp/tools`).then(r => r.json()),
+          fetch(`${API}/mcp/audit`).then(r => r.json())
+        ]);
+
+        const toolsList = document.getElementById('mcpToolsList');
+        if (!tools.length) {
+          toolsList.innerHTML = '<div class="empty-state">No MCP tools available.<br>Check MCP server connections.</div>';
+        } else {
+          toolsList.innerHTML = tools.map(t => `
+            <div class="tool-item">
+              <div>
+                <strong>${escapeHtml(t.name)}</strong>
+                <span style="color: var(--muted);"> (${t.server})</span>
+                <div style="font-size: 0.75rem; color: var(--muted);">${escapeHtml(t.description || '')}</div>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        const auditLog = document.getElementById('mcpAuditLog');
+        if (!audit.length) {
+          auditLog.innerHTML = '<div class="empty-state">No MCP calls yet</div>';
+        } else {
+          auditLog.innerHTML = audit.slice(-15).map(a => `
+            <div class="log-entry ${a.success ? 'success' : 'error'}">
+              <div class="log-header">
+                <span class="log-agent">${escapeHtml(a.tool)}</span>
+                <span class="log-time">${new Date(a.timestamp).toLocaleTimeString()}</span>
+              </div>
+              <div class="log-content">${escapeHtml(JSON.stringify(a.args))}</div>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        document.getElementById('mcpToolsList').innerHTML = `<div class="empty-state">Error: ${err.message}</div>`;
+      }
+    }
+
+    // Approvals Tab
+    async function loadAllApprovals() {
+      try {
+        const approvals = await fetch(`${API}/approvals`).then(r => r.json());
+        const stats = await fetch(`${API}/health`).then(r => r.json()).catch(() => ({}));
+
+        const list = document.getElementById('approvalsFullList');
+        if (!approvals.length) {
+          list.innerHTML = '<div class="empty-state">No pending approvals</div>';
+        } else {
+          list.innerHTML = approvals.map(a => renderApprovalCard(a)).join('');
+        }
+
+        if (stats.stats) {
+          document.getElementById('autoApproved').textContent = stats.stats.autoApproved || 0;
+          document.getElementById('manualApproved').textContent = stats.stats.manualApproved || 0;
+          document.getElementById('denied').textContent = stats.stats.denied || 0;
+          document.getElementById('pending').textContent = stats.stats.pending || 0;
+        }
+      } catch (err) {
+        document.getElementById('approvalsFullList').innerHTML = `<div class="empty-state">Error: ${err.message}</div>`;
+      }
+    }
+
+    // Command
+    async function sendCommand() {
+      const input = document.getElementById('commandInput');
+      const cmd = input.value.trim();
+      if (!cmd) return;
+
+      addLog('ops', `> ${cmd}`, 'ops-agent');
+      input.value = '';
+
+      try {
+        const res = await fetch(`${API}/command`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: cmd })
+        });
+        const result = await res.json();
+        addLog('file', formatResult(result), 'success');
+      } catch (err) {
+        addLog('ops', `Error: ${err.message}`, 'error');
+      }
+    }
+
+    document.getElementById('sendBtn').addEventListener('click', sendCommand);
+    document.getElementById('commandInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendCommand();
+    });
+
+    // Utils
+    function formatResult(r) {
+      if (!r) return 'Done';
+      if (r.success) return r.message || 'Success';
+      if (r.content) return r.content.slice(0, 500);
+      if (r.reasoning) return r.reasoning.slice(0, 500);
+      return JSON.stringify(r, null, 2).slice(0, 500);
+    }
+
+    function addLog(agent, content, type = '') {
+      const log = document.getElementById('activityLog');
+      const empty = log.querySelector('.empty-state');
+      if (empty) empty.remove();
+
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type} ${agent}-agent`;
+      entry.innerHTML = `
+        <div class="log-header">
+          <span class="log-agent ${agent}">${agent === 'file' ? 'File Agent' : agent === 'ops' ? 'Ops Agent' : 'System'}</span>
+          <span class="log-time">${new Date().toLocaleTimeString()}</span>
+        </div>
+        <div class="log-content">${escapeHtml(content)}</div>
+      `;
+      log.insertBefore(entry, log.firstChild);
+    }
+
+    function renderApprovalCard(a) {
+      return `
+        <div class="approval-card ${a.action?.risk === 'high' ? 'high-risk' : ''}">
+          <span class="approval-risk ${a.action?.risk || 'low'}">${(a.action?.risk || 'low').toUpperCase()} RISK</span>
+          <div class="approval-action">${escapeHtml(a.action?.type || 'Action')}</div>
+          <div class="approval-target">${escapeHtml(a.action?.target || 'N/A')}</div>
+          <div class="approval-buttons">
+            <button class="approval-btn approve" onclick="approveAction('${a.id}')">Approve</button>
+            <button class="approval-btn deny" onclick="denyAction('${a.id}')">Deny</button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function approveAction(id) {
+      await fetch(`${API}/approvals/${id}/approve`, { method: 'POST' });
+      loadDashboard();
+      loadAllApprovals();
+    }
+
+    async function denyAction(id) {
+      await fetch(`${API}/approvals/${id}/deny`, { method: 'POST' });
+      loadDashboard();
+      loadAllApprovals();
+    }
+
+    function addApprovalCard(request) {
+      const queue = document.getElementById('approvalQueue');
+      const empty = queue.querySelector('.empty-state');
+      if (empty) queue.innerHTML = '';
+      queue.innerHTML = renderApprovalCard(request) + queue.innerHTML;
+    }
+
+    function updateStats(stats) {
+      if (stats) {
+        document.getElementById('autoApproved').textContent = stats.autoApproved || 0;
+        document.getElementById('manualApproved').textContent = stats.manualApproved || 0;
+        document.getElementById('denied').textContent = stats.denied || 0;
+        document.getElementById('pending').textContent = stats.pending || 0;
+      }
+    }
+
+    // Modals
+    function showAddPatternModal() {
+      document.getElementById('addPatternModal').classList.add('active');
+    }
+
+    function showAddRuleModal() {
+      document.getElementById('addRuleModal').classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    async function savePattern() {
+      const source = document.getElementById('patternSource').value.trim();
+      const target = document.getElementById('patternTarget').value.trim();
+
+      if (!source || !target) return;
+
+      try {
+        await fetch(`${API}/patterns/record`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patternType: 'extension',
+            sourcePattern: source,
+            targetPattern: target,
+            fileTypes: [source.replace('*.', '.')]
+          })
+        });
+        closeModal('addPatternModal');
+        loadPatterns();
+        addLog('system', `Pattern added: ${source} → ${target}`, 'success');
+      } catch (err) {
+        addLog('system', `Error: ${err.message}`, 'error');
+      }
+    }
+
+    async function saveRule() {
+      const path = document.getElementById('rulePath').value.trim();
+      const type = document.getElementById('ruleType').value;
+
+      if (!path) return;
+
+      try {
+        await fetch(`${API}/organize/rules`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            watchPath: path,
+            ruleType: type,
+            ruleConfig: { autoLearn: true }
+          })
+        });
+        closeModal('addRuleModal');
+        loadRules();
+        addLog('system', `Rule added: ${type} on ${path}`, 'success');
+      } catch (err) {
+        addLog('system', `Error: ${err.message}`, 'error');
+      }
+    }
+
+    async function deleteRule(watchPath) {
+      try {
+        await fetch(`${API}/organize/rules`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ watchPath })
+        });
+        loadRules();
+      } catch (err) {
+        addLog('system', `Error: ${err.message}`, 'error');
+      }
+    }
+
+    async function pauseOrganize() {
+      await fetch(`${API}/organize/pause`, { method: 'POST' });
+      addLog('system', 'Auto-organize paused', 'warn');
+    }
+
+    async function resumeOrganize() {
+      await fetch(`${API}/organize/resume`, { method: 'POST' });
+      addLog('system', 'Auto-organize resumed', 'success');
+    }
+
+    function escapeHtml(text) {
+      if (typeof text !== 'string') return text;
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

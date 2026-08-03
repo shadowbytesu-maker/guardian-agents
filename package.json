@@ -1,0 +1,45 @@
+{
+  "name": "guardian-agents",
+  "version": "0.1.0",
+  "description": "Local autonomous file system agents with MCP orchestration",
+  "main": "src/server/index.js",
+  "type": "module",
+  "bin": {
+    "guardian": "./src/cli/index.js"
+  },
+  "scripts": {
+    "dev": "node src/server/index.js",
+    "start": "node src/server/index.js",
+    "cli": "node src/cli/index.js",
+    "test": "node tests/index.js",
+    "test:unit": "node tests/unit.js",
+    "test:integration": "node tests/integration.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "better-sqlite3": "^11.0.0",
+    "chokidar": "^3.6.0",
+    "express": "^4.21.0",
+    "ollama": "^0.5.0",
+    "uuid": "^10.0.0",
+    "ws": "^8.18.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "automation",
+    "file-organization",
+    "ai-agent",
+    "ollama",
+    "mcp",
+    "local-first",
+    "offline",
+    "privacy"
+  ],
+  "license": "MIT"
+}
