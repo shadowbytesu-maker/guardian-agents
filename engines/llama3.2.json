@@ -1,0 +1,7 @@
+{
+  "name": "llama32",
+  "type": "ollama",
+  "model": "llama3.2:3b",
+  "max_tokens": 4096,
+  "temperature": 0.2
+}
